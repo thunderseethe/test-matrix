@@ -32,6 +32,4 @@ jobs:
         run: cd crubit; cargo check --bin cc_bindings_from_rs
       - name: Final Status Notification
         if: always()
-        run: "if [[ \"${{ job.status }}\" == \"success\" ]]; then\n  echo \"✅ Build\
-          \ passed for ${{ matrix.rust_version }}\"\nelse\n  echo \"❌ Build failed\
-          \ for ${{ matrix.rust_version }}\"\nfi\n"
+        run: "if [[ \"${{ job.status }}\" == \"success\" ]]; then\n  echo \"✅ Build passed for ${{ matrix.rust_version }}\"\nelse\n  echo \"❌ Build failed for ${{ matrix.rust_version }}\"\nfi\n"
