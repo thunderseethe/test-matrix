@@ -1,0 +1,53 @@
+name: Update Crubit and Test Matrix
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-repo:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # submodules: true ensures the submodule folder exists to be updated
+          submodules: true
+          # fetch-depth: 0 ensures we have history to push back
+          fetch-depth: 0
+
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      - name: Update Crubit Submodule
+        run: |
+          echo "Updating crubit submodule..."
+          # Initialize and update to the latest commit on the tracked branch
+          git submodule update --init --remote crubit
+
+      - name: Fetch Versions and Update YAML
+        run: |
+          set -e
+          VERSIONS=$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/rustc-dev.json | \
+            jq -c 'del(.last_available) | keys | [.[] | "nightly-\(.)"]')
+          
+          yq -i ".jobs.build.strategy.matrix.rust_version = ${VERSIONS}" .github/workflows/test.yaml
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage both the workflow file and the submodule pointer change
+          git add .github/workflows/test.yaml crubit
+          
+          if git diff --staged --quiet; then
+            echo "No changes detected in matrix or submodules."
+          else
+            git commit -m "chore: update rust matrix and crubit submodule"
+            git push
+          fi

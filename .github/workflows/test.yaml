@@ -1,0 +1,36 @@
+name: Build Matrix
+'on':
+  workflow_dispatch: null
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rust_version:
+          - nightly-2026-01-10
+          - nightly-2026-01-11
+          - nightly-2026-01-12
+          - nightly-2026-01-13
+          - nightly-2026-01-14
+          - nightly-2026-01-15
+          - nightly-2026-01-16
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Rust Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust_version }}
+          components:
+            - rust-src
+            - rustc-dev
+            - llvm-tools-preview
+      - name: Build Binary
+        id: cargo_build
+        run: cargo check --bin cc_bindings_from_rs
+      - name: Final Status Notification
+        if: always()
+        run: "if [[ \"${{ job.status }}\" == \"success\" ]]; then\n  echo \"✅ Build\
+          \ passed for ${{ matrix.rust_version }}\"\nelse\n  echo \"❌ Build failed\
+          \ for ${{ matrix.rust_version }}\"\nfi\n"
