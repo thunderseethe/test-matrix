@@ -1,6 +1,9 @@
 name: Build Matrix
 'on':
-  workflow_run: "Update Crubit and Test Matrix"
+  workflow_run:
+    workflows: ["Update Crubit and Test Matrix"]
+    types:
+      - completed
   workflow_dispatch: null
 jobs:
   build:
