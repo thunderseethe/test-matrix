@@ -22,6 +22,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # submodules: true ensures the submodule folder exists to be updated
+          submodules: true
+          # fetch-depth: 0 ensures we have history to push back
+          fetch-depth: 0
       - name: Install Rust Toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
