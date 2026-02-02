@@ -12,13 +12,13 @@ jobs:
       fail-fast: false
       matrix:
         rust_version:
-          - nightly-2026-01-26
           - nightly-2026-01-27
           - nightly-2026-01-28
           - nightly-2026-01-29
           - nightly-2026-01-30
           - nightly-2026-01-31
           - nightly-2026-02-01
+          - nightly-2026-02-02
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
