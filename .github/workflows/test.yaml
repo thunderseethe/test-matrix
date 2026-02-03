@@ -11,14 +11,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust_version:
-          - nightly-2026-01-28
-          - nightly-2026-01-29
-          - nightly-2026-01-30
-          - nightly-2026-01-31
-          - nightly-2026-02-01
-          - nightly-2026-02-02
-          - nightly-2026-02-03
+        include:
+          - version: nightly-2026-01-28
+            id: 6
+          - version: nightly-2026-01-29
+            id: 5
+          - version: nightly-2026-01-30
+            id: 4
+          - version: nightly-2026-01-31
+            id: 3
+          - version: nightly-2026-02-01
+            id: 2
+          - version: nightly-2026-02-02
+            id: 1
+          - version: nightly-2026-02-03
+            id: 0
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,6 +46,50 @@ jobs:
         run: |
           cd crubit
           cargo check --bin cc_bindings_from_rs
-      - name: Final Status Notification
+      - name: Create Badge JSON
         if: always()
-        run: "if [[ \"${{ job.status }}\" == \"success\" ]]; then\n  echo \"✅ Build passed for ${{ matrix.rust_version }}\"\nelse\n  echo \"❌ Build failed for ${{ matrix.rust_version }}\"\nfi\n"
+        run: |
+          STATUS="${{ job.status }}"
+          COLOR="brightgreen"
+          MESSAGE="passing"
+          if [ "$STATUS" != "success" ]; then
+            COLOR="red"
+            MESSAGE="failing"
+          fi
+          echo "{\"schemaVersion\": 1, \"label\": \"${{ matrix.version }}\", \"message\": \"$MESSAGE\", \"color\": \"$COLOR\"}" > nightly-${{ matrix.id }}.json
+
+      - name: Upload JSON Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: badge-${{ matrix.id }}
+          path: nightly-${{ matrix.id }}.json
+
+  upload-badges:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download all JSON artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: badges_temp
+          pattern: badge-*
+          merge-multiple: true
+
+      - name: Push JSONs to badges branch
+        run: |
+          git checkout 
+          mv badges_temp/*.json .
+          git add *.json
+          if git diff --staged --quiet; then
+            echo "No changes detected in matrix or submodules."
+          else
+            git commit -m "chore: update rust matrix and crubit submodule"
+            git push
+          fi
