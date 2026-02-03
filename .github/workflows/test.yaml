@@ -87,6 +87,9 @@ jobs:
 
       - name: Push JSONs to badges branch
         run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
           git checkout 
           mv badges_temp/*.json .
           git add *.json
