@@ -35,8 +35,8 @@ jobs:
       - name: Build Binary
         id: cargo_build
         run: |
-          cd crubit \
-          export RUST_TOOLCHAIN="${{ matrix.rust_version }}" \
+          cd crubit
+          export RUST_TOOLCHAIN="${{ matrix.rust_version }}"
           cargo check --bin cc_bindings_from_rs
       - name: Final Status Notification
         if: always()
