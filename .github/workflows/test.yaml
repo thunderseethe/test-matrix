@@ -5,6 +5,9 @@ name: Build Matrix
     types:
       - completed
   workflow_dispatch: null
+permissions:
+  actions: write
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
