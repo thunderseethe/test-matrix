@@ -36,7 +36,7 @@ jobs:
         run: |
           set -e
           VERSIONS=$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/rustc-dev.json | \
-            jq -c 'del(.last_available) | keys | [.[] | "nightly-\(.)"]')
+            jq -c 'del(.last_available) | keys | sort | reverse | to_entries | [.[] | {version: ("nightly-" + .value), id: .keys}]')
           
           yq -i ".jobs.build.strategy.matrix.rust_version = ${VERSIONS}" .github/workflows/test.yaml
 
