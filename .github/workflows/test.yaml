@@ -29,6 +29,21 @@ jobs:
             id: 1
           - version: nightly-2026-02-03
             id: 0
+        rust_version:
+          - version: nightly-2026-02-03
+            id: null
+          - version: nightly-2026-02-02
+            id: null
+          - version: nightly-2026-02-01
+            id: null
+          - version: nightly-2026-01-31
+            id: null
+          - version: nightly-2026-01-30
+            id: null
+          - version: nightly-2026-01-29
+            id: null
+          - version: nightly-2026-01-28
+            id: null
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -60,14 +75,12 @@ jobs:
             MESSAGE="failing"
           fi
           echo "{\"schemaVersion\": 1, \"label\": \"${{ matrix.version }}\", \"message\": \"$MESSAGE\", \"color\": \"$COLOR\"}" > nightly-${{ matrix.id }}.json
-
       - name: Upload JSON Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: badge-${{ matrix.id }}
           path: nightly-${{ matrix.id }}.json
-
   upload-badges:
     needs: build
     if: always()
@@ -77,25 +90,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
-
       - name: Download all JSON artifacts
         uses: actions/download-artifact@v4
         with:
           path: badges_temp
           pattern: badge-*
           merge-multiple: true
-
       - name: Push JSONs to badges branch
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          git checkout 
-          mv badges_temp/*.json .
-          git add *.json
-          if git diff --staged --quiet; then
-            echo "No changes detected in matrix or submodules."
-          else
-            git commit -m "chore: update rust matrix and crubit submodule"
-            git push
-          fi
+        run: "git config --global user.name \"github-actions[bot]\"\ngit config --global user.email \"github-actions[bot]@users.noreply.github.com\"\n\ngit checkout \nmv badges_temp/*.json .\ngit add *.json\nif git diff --staged --quiet; then\n  echo \"No changes detected in matrix or submodules.\"\nelse\n  git commit -m \"chore: update rust matrix and crubit submodule\"\n  git push\nfi\n"
