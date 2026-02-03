@@ -29,21 +29,6 @@ jobs:
             id: 1
           - version: nightly-2026-02-03
             id: 0
-        rust_version:
-          - version: nightly-2026-02-03
-            id: null
-          - version: nightly-2026-02-02
-            id: null
-          - version: nightly-2026-02-01
-            id: null
-          - version: nightly-2026-01-31
-            id: null
-          - version: nightly-2026-01-30
-            id: null
-          - version: nightly-2026-01-29
-            id: null
-          - version: nightly-2026-01-28
-            id: null
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
