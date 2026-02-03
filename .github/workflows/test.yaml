@@ -15,20 +15,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - version: nightly-2026-01-28
-            id: 6
-          - version: nightly-2026-01-29
-            id: 5
-          - version: nightly-2026-01-30
-            id: 4
-          - version: nightly-2026-01-31
-            id: 3
-          - version: nightly-2026-02-01
-            id: 2
-          - version: nightly-2026-02-02
-            id: 1
           - version: nightly-2026-02-03
             id: 0
+          - version: nightly-2026-02-02
+            id: 1
+          - version: nightly-2026-02-01
+            id: 2
+          - version: nightly-2026-01-31
+            id: 3
+          - version: nightly-2026-01-30
+            id: 4
+          - version: nightly-2026-01-29
+            id: 5
+          - version: nightly-2026-01-28
+            id: 6
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
