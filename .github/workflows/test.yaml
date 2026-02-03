@@ -34,9 +34,10 @@ jobs:
           components: "rust-src, rustc-dev, llvm-tools-preview"
       - name: Build Binary
         id: cargo_build
+        env:
+          RUST_TOOLCHAIN: ${{ matrix.rust_version }}
         run: |
           cd crubit
-          export RUST_TOOLCHAIN="${{ matrix.rust_version }}"
           cargo check --bin cc_bindings_from_rs
       - name: Final Status Notification
         if: always()
