@@ -35,7 +35,7 @@ jobs:
       - name: Build Binary
         id: cargo_build
         env:
-          RUST_TOOLCHAIN: ${{ matrix.rust_version }}
+          RUSTUP_TOOLCHAIN: ${{ matrix.rust_version }}
         run: |
           cd crubit
           cargo check --bin cc_bindings_from_rs
