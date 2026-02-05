@@ -12,6 +12,14 @@ jobs:
     permissions:
       actions: write # Required to trigger workflows
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.UPDATE_REPO_SECRET }}
+          # submodules: true ensures the submodule folder exists to be updated
+          submodules: true
+          # fetch-depth: 0 ensures we have history to push back
+          fetch-depth: 0
       - name: Trigger Workflow on Target Branch
         env:
           GH_TOKEN: ${{ github.token }}
