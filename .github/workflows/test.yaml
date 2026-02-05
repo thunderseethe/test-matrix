@@ -4,6 +4,8 @@ name: Build Matrix
     workflows: ["Update Crubit and Test Matrix"]
     types:
       - completed
+    branches:
+      - "test-matrix"
   workflow_dispatch: null
 permissions:
   actions: write
