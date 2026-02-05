@@ -20,6 +20,7 @@ jobs:
           submodules: true
           # fetch-depth: 0 ensures we have history to push back
           fetch-depth: 0
+          ref: test-matrix
 
       - name: Install yq
         run: |
@@ -52,5 +53,5 @@ jobs:
             echo "No changes detected in matrix or submodules."
           else
             git commit -m "chore: update rust matrix and crubit submodule"
-            git push
+            git push origin test-matrix
           fi
