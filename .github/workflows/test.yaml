@@ -29,7 +29,7 @@ jobs:
         run: |
           # Fetch and format the versions into a JSON object
           VERSIONS=$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/rustc-dev.json | \
-            jq -c 'del(.last_available) | keys | sort | reverse | .[0:7] | to_entries | {include: [.[] | {version: ("nightly-" + .value), id: .key}]}')
+            jq -c 'del(.last_available) | keys | sort | reverse | to_entries | {include: [.[] | {version: ("nightly-" + .value), id: .key}]}')
           
           # Write to file for repo persistence
           echo "$VERSIONS" > matrix.json
