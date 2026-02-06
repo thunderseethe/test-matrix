@@ -1,51 +1,82 @@
-name: Build Matrix
-'on':
-  workflow_dispatch: null
+name: Crubit Test Matrix
+on:
+  workflow_dispatch:
+
 permissions:
-  actions: write
   contents: write
+  actions: write
+
 jobs:
-  build:
+  update-and-generate:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - version: nightly-2026-02-06
-            id: 0
-          - version: nightly-2026-02-05
-            id: 1
-          - version: nightly-2026-02-04
-            id: 2
-          - version: nightly-2026-02-03
-            id: 3
-          - version: nightly-2026-02-02
-            id: 4
-          - version: nightly-2026-02-01
-            id: 5
-          - version: nightly-2026-01-31
-            id: 6
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # submodules: true ensures the submodule folder exists to be updated
+          token: ${{ secrets.UPDATE_REPO_SECRET || github.token }}
           submodules: true
-          # fetch-depth: 0 ensures we have history to push back
           fetch-depth: 0
           ref: test-matrix
+
+      - name: Update Crubit Submodule
+        run: |
+          git submodule update --init --remote crubit
+
+      - name: Fetch Versions and Generate Matrix
+        id: set-matrix
+        run: |
+          # Fetch and format the versions into a JSON object
+          VERSIONS=$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/rustc-dev.json | \
+            jq -c 'del(.last_available) | keys | sort | reverse | .[0:7] | to_entries | {include: [.[] | {version: ("nightly-" + .value), id: .key}]}')
+          
+          # Write to file for repo persistence
+          echo "$VERSIONS" > matrix.json
+          
+          # Set output for the next job
+          echo "matrix=$VERSIONS" >> $GITHUB_OUTPUT
+
+      - name: Commit and Push Updates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add crubit matrix.json
+          if git diff --staged --quiet; then
+            echo "No changes detected."
+          else
+            git commit -m "chore: update crubit and matrix.json"
+            git push origin test-matrix
+          fi
+
+  build:
+    needs: update-and-generate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.update-and-generate.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+          ref: test-matrix
+
       - name: Install Rust Toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: ${{ matrix.version }}
           components: "rust-src, rustc-dev, llvm-tools-preview"
+
       - name: Build Binary
-        id: cargo_build
         env:
           RUSTUP_TOOLCHAIN: ${{ matrix.version }}
         run: |
           cd crubit
           cargo check --bin cc_bindings_from_rs
+
       - name: Create Badge JSON
         if: always()
         run: |
@@ -57,12 +88,14 @@ jobs:
             MESSAGE="failing"
           fi
           echo "{\"schemaVersion\": 1, \"label\": \"${{ matrix.version }}\", \"message\": \"$MESSAGE\", \"color\": \"$COLOR\"}" > nightly-${{ matrix.id }}.json
+
       - name: Upload JSON Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: badge-${{ matrix.id }}
           path: nightly-${{ matrix.id }}.json
+
   upload-badges:
     needs: build
     if: always()
@@ -72,11 +105,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+
       - name: Download all JSON artifacts
         uses: actions/download-artifact@v4
         with:
           path: badges_temp
           pattern: badge-*
           merge-multiple: true
-      - name: Push JSONs to badges branch
-        run: "git config --global user.name \"github-actions[bot]\"\ngit config --global user.email \"github-actions[bot]@users.noreply.github.com\"\n\ngit checkout \nmv badges_temp/*.json .\ngit add *.json\nif git diff --staged --quiet; then\n  echo \"No changes detected in matrix or submodules.\"\nelse\n  git commit -m \"chore: update rust matrix and crubit submodule\"\n  git push origin test-matrix\nfi\n"
+
+      - name: Push JSONs to target branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          mv badges_temp/*.json .
+          git add *.json
+          
+          if git diff --staged --quiet; then
+            echo "No changes in badges."
+          else
+            git commit -m "chore: update status badges"
+            git push origin test-matrix
+          fi
