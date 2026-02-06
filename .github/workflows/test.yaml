@@ -76,6 +76,7 @@ jobs:
         run: |
           cd crubit
           cargo check --bin cc_bindings_from_rs
+          exit 1
 
       - name: Create Badge JSON
         if: always()
@@ -104,7 +105,7 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: test-matrix
 
       - name: Download all JSON artifacts
         uses: actions/download-artifact@v4
@@ -127,3 +128,24 @@ jobs:
             git commit -m "chore: update status badges"
             git push origin test-matrix
           fi
+
+  notify-failures:
+    needs: build
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: test-matrix
+      - name: Report failure in issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TEAM_HANDLE: "@thunderseethe"
+          ISSUE_NUMBER: 1
+        run: |
+          MESSAGE="Attention $TEAM_HANDLE: The nightly test matrix has failed.
+          
+          **Run Details:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          gh issue comment "$ISSUE_NUMBER" --body "$MESSAGE"
