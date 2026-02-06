@@ -11,19 +11,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - version: nightly-2026-02-05
+          - version: nightly-2026-02-06
             id: 0
-          - version: nightly-2026-02-04
+          - version: nightly-2026-02-05
             id: 1
-          - version: nightly-2026-02-03
+          - version: nightly-2026-02-04
             id: 2
-          - version: nightly-2026-02-02
+          - version: nightly-2026-02-03
             id: 3
-          - version: nightly-2026-02-01
+          - version: nightly-2026-02-02
             id: 4
-          - version: nightly-2026-01-31
+          - version: nightly-2026-02-01
             id: 5
-          - version: nightly-2026-01-30
+          - version: nightly-2026-01-31
             id: 6
     steps:
       - name: Checkout code
