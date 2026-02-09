@@ -77,7 +77,6 @@ jobs:
         run: |
           cd crubit
           cargo check --bin cc_bindings_from_rs
-          exit 1
 
       - name: Create Badge JSON
         if: always()
