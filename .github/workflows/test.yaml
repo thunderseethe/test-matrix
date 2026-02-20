@@ -4,7 +4,6 @@ on:
 
 permissions:
   contents: write
-  actions: write
   issues: write
 
 jobs:
@@ -16,7 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.UPDATE_REPO_SECRET || github.token }}
           submodules: true
           fetch-depth: 0
           ref: test-matrix
