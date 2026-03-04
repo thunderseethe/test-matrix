@@ -72,6 +72,7 @@ jobs:
       - name: Build Binary
         env:
           RUSTUP_TOOLCHAIN: ${{ matrix.version }}
+          RUSTFLAGS: -Awarnings
         run: |
           cd crubit
           cargo check --bin cc_bindings_from_rs
